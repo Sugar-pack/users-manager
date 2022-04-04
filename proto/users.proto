@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "pkg/generated/users";
+
+service Users {
+  rpc CreateUser(NewUser) returns(CreatedUser);
+}
+
+message NewUser {
+  string name = 1;
+}
+
+message CreatedUser {
+  string id = 1;
+  string tx_id = 2;
+}
