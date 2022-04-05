@@ -3,14 +3,17 @@ package grpcapi
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/Sugar-pack/users-manager/internal/db"
 	distributedTxPb "github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
 	"github.com/Sugar-pack/users-manager/pkg/logging"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-func (dt *DistributedTxService) Commit(ctx context.Context, req *distributedTxPb.TxToCommit) (*distributedTxPb.TxResponse, error) {
+func (dt *DistributedTxService) Commit(ctx context.Context, req *distributedTxPb.TxToCommit) (
+	*distributedTxPb.TxResponse, error,
+) {
 	logger := logging.FromContext(ctx)
 	dbConn := dt.dbConn
 	txID := req.GetTxId()

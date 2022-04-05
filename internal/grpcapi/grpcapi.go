@@ -1,10 +1,10 @@
 package grpcapi
 
 import (
-	distributedTxPb "github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 
+	distributedTxPb "github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
 	usersPb "github.com/Sugar-pack/users-manager/pkg/generated/users"
 	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
