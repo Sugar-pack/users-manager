@@ -10,13 +10,14 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-// Apply applies database migrations
+// Apply applies database migrations.
 func Apply(ctx context.Context, conf *config.DB) error {
 	logger := logging.FromContext(ctx)
 
 	dbConn, err := db.Connect(ctx, conf)
 	if err != nil {
 		logger.WithError(err).Error("db connect failed")
+
 		return err
 	}
 	defer func() {
@@ -36,12 +37,17 @@ func Apply(ctx context.Context, conf *config.DB) error {
 	)
 	if err != nil {
 		logger.WithError(err).Error("apply migration failed")
+
 		return err
 	}
+
 	logger.WithField("count", count).Info("migrations applied")
+
 	if err = db.Disconnect(ctx, dbConn); err != nil {
 		logger.WithError(err).Error("disconnect failed")
+
 		return err
 	}
+
 	return err
 }

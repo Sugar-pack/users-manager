@@ -25,5 +25,6 @@ func CreateServer(logger logging.Logger, dbConn *sqlx.DB) (*grpc.Server, error) 
 		dbConn: dbConn,
 	}
 	usersPb.RegisterUsersServer(grpcServer, usersService)
+
 	return grpcServer, nil
 }
