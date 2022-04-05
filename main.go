@@ -8,8 +8,8 @@ import (
 	"github.com/Sugar-pack/users-manager/internal/config"
 	"github.com/Sugar-pack/users-manager/internal/db"
 	"github.com/Sugar-pack/users-manager/internal/grpcapi"
-	"github.com/Sugar-pack/users-manager/internal/logging"
 	"github.com/Sugar-pack/users-manager/internal/migrations"
+	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 func main() {
