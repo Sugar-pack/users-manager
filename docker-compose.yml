@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "users_db"
+    networks:
+      - default
+  users_db:
+    image: "postgres:14.2"
+    ports:
+      - "15432:5432"
+    networks:
+      - default
+    hostname: users_db
+    environment:
+      POSTGRES_USER: user_db
+      POSTGRES_DB: users_db
+      POSTGRES_HOST_AUTH_METHOD: trust
