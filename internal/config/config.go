@@ -29,8 +29,8 @@ type AppConfig struct {
 
 // GetAppConfig returns *Config
 func GetAppConfig() (*AppConfig, error) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
+	viper.SetConfigName("config") // hardcoded config name
+	viper.AddConfigPath(".")      // hardcoded configfile path
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("unable to read config from file: %w", err)
 	}

@@ -14,7 +14,12 @@ protoc --go_out=. --go-grpc_out=. proto/users.proto
 docker-compose up --build -d --remove-orphans
 ```
 
-* if api-service didn't start, just restart it
+### Known problems
+if api-service didn't start, just restart it
 ```bash
 docker-compose up -d
 ```
+
+### config filename
+
+Service uses **config.yml** as a configuration file name. It can not be overriden. Probably, should be passed as a command line argument.
