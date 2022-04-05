@@ -4,6 +4,7 @@ option go_package = "pkg/generated/distributedtx";
 
 service DistributedTxService {
   rpc Commit(TxToCommit) returns(TxResponse);
+  rpc Rollback(TxToRollback) returns(TxResponse);
 }
 
 message TxToCommit {
@@ -11,3 +12,7 @@ message TxToCommit {
 }
 
 message TxResponse {}
+
+message TxToRollback {
+  string tx_id = 1;
+}

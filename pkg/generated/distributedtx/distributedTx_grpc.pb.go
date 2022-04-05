@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DistributedTxServiceClient interface {
 	Commit(ctx context.Context, in *TxToCommit, opts ...grpc.CallOption) (*TxResponse, error)
+	Rollback(ctx context.Context, in *TxToRollback, opts ...grpc.CallOption) (*TxResponse, error)
 }
 
 type distributedTxServiceClient struct {
@@ -42,11 +43,21 @@ func (c *distributedTxServiceClient) Commit(ctx context.Context, in *TxToCommit,
 	return out, nil
 }
 
+func (c *distributedTxServiceClient) Rollback(ctx context.Context, in *TxToRollback, opts ...grpc.CallOption) (*TxResponse, error) {
+	out := new(TxResponse)
+	err := c.cc.Invoke(ctx, "/DistributedTxService/Rollback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DistributedTxServiceServer is the server API for DistributedTxService service.
 // All implementations must embed UnimplementedDistributedTxServiceServer
 // for forward compatibility
 type DistributedTxServiceServer interface {
 	Commit(context.Context, *TxToCommit) (*TxResponse, error)
+	Rollback(context.Context, *TxToRollback) (*TxResponse, error)
 	mustEmbedUnimplementedDistributedTxServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedDistributedTxServiceServer struct {
 
 func (UnimplementedDistributedTxServiceServer) Commit(context.Context, *TxToCommit) (*TxResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
+}
+func (UnimplementedDistributedTxServiceServer) Rollback(context.Context, *TxToRollback) (*TxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Rollback not implemented")
 }
 func (UnimplementedDistributedTxServiceServer) mustEmbedUnimplementedDistributedTxServiceServer() {}
 
@@ -88,6 +102,24 @@ func _DistributedTxService_Commit_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DistributedTxService_Rollback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TxToRollback)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DistributedTxServiceServer).Rollback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/DistributedTxService/Rollback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DistributedTxServiceServer).Rollback(ctx, req.(*TxToRollback))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DistributedTxService_ServiceDesc is the grpc.ServiceDesc for DistributedTxService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var DistributedTxService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Commit",
 			Handler:    _DistributedTxService_Commit_Handler,
+		},
+		{
+			MethodName: "Rollback",
+			Handler:    _DistributedTxService_Rollback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
