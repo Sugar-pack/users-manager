@@ -3,10 +3,11 @@ package db
 import (
 	"context"
 
-	"github.com/Sugar-pack/users-manager/internal/config"
-	"github.com/Sugar-pack/users-manager/internal/logging"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/Sugar-pack/users-manager/internal/config"
+	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 // Connect creates new db connection.

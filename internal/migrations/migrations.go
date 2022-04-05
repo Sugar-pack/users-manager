@@ -4,10 +4,11 @@ package migrations
 import (
 	"context"
 
+	migrate "github.com/rubenv/sql-migrate"
+
 	"github.com/Sugar-pack/users-manager/internal/config"
 	"github.com/Sugar-pack/users-manager/internal/db"
-	"github.com/Sugar-pack/users-manager/internal/logging"
-	migrate "github.com/rubenv/sql-migrate"
+	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 // Apply applies database migrations.

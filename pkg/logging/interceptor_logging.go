@@ -1,18 +1,17 @@
-package grpcapi
+package logging
 
 import (
 	"context"
 
-	"github.com/Sugar-pack/users-manager/internal/logging"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
-func WithLogger(logger logging.Logger) grpc.UnaryServerInterceptor {
+func WithLogger(logger Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 		resp interface{}, err error,
 	) {
-		ctx = logging.WithContext(ctx, logger)
+		ctx = WithContext(ctx, logger)
 		result, err := handler(ctx, req)
 
 		return result, err
@@ -22,10 +21,10 @@ func WithLogger(logger logging.Logger) grpc.UnaryServerInterceptor {
 func WithUniqTraceID(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 	resp interface{}, err error,
 ) {
-	logger := logging.FromContext(ctx)
+	logger := FromContext(ctx)
 	logID := uuid.New()
 	uniqLogger := logger.WithField("x_request_id", logID.String())
-	ctx = logging.WithContext(ctx, uniqLogger)
+	ctx = WithContext(ctx, uniqLogger)
 	result, err := handler(ctx, req)
 
 	return result, err
@@ -34,7 +33,7 @@ func WithUniqTraceID(ctx context.Context, req interface{}, info *grpc.UnaryServe
 func LogBoundaries(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 	resp interface{}, err error,
 ) {
-	logger := logging.FromContext(ctx)
+	logger := FromContext(ctx)
 	requestPath := info.FullMethod
 	logger.WithField("request", requestPath).Trace("request started")
 	result, err := handler(ctx, req)

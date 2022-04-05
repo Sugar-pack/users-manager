@@ -1,10 +1,11 @@
 package grpcapi
 
 import (
-	"github.com/Sugar-pack/users-manager/internal/logging"
-	usersPb "github.com/Sugar-pack/users-manager/pkg/generated/users"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
+
+	usersPb "github.com/Sugar-pack/users-manager/pkg/generated/users"
+	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 type UsersService struct {
@@ -15,9 +16,9 @@ type UsersService struct {
 func CreateServer(logger logging.Logger, dbConn *sqlx.DB) (*grpc.Server, error) {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			WithLogger(logger),
-			WithUniqTraceID,
-			LogBoundaries,
+			logging.WithLogger(logger),
+			logging.WithUniqTraceID,
+			logging.LogBoundaries,
 		),
 	)
 
