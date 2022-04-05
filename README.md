@@ -7,6 +7,7 @@ go install -v google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install -v google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 protoc --go_out=. --go-grpc_out=. proto/users.proto
+protoc --go_out=. --go-grpc_out=. proto/distributedTx.proto
 ```
 ## Launch
 
