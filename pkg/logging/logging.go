@@ -10,15 +10,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Fields is a wrapper around logrus.Field
+// Fields is a wrapper around logrus.Field.
 type Fields log.Fields
 
-// logWrapper is a wrapper around *logrus.Entry
+// logWrapper is a wrapper around *logrus.Entry.
 type logWrapper struct {
 	*log.Entry
 }
 
-// Logger interface
+// Logger interface.
 type Logger interface {
 	Trace(...interface{})
 	Debug(...interface{})
@@ -31,7 +31,7 @@ type Logger interface {
 	WithFields(fields Fields) Logger
 }
 
-// GetLogger is a Logger getter with default settings
+// GetLogger is a Logger getter with default settings.
 func GetLogger() Logger {
 	logger := log.New()
 	logger.SetFormatter(&log.TextFormatter{})
@@ -57,17 +57,18 @@ func (lw *logWrapper) WithFields(fields Fields) Logger {
 
 type logCtx struct{}
 
-// WithContext puts logger to the context
+// WithContext puts logger to the context.
 func WithContext(ctx context.Context, logger Logger) context.Context {
 	return context.WithValue(ctx, logCtx{}, logger)
 }
 
 // FromContext extracts Logger from context and returns itself
-// otherwise, creates default one logger
+// otherwise, creates default one logger.
 func FromContext(ctx context.Context) Logger {
 	logger, ok := ctx.Value(logCtx{}).(Logger)
 	if !ok {
 		return GetLogger()
 	}
+
 	return logger
 }

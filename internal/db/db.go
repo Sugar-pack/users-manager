@@ -10,13 +10,14 @@ import (
 	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
-// Connect creates new db connection
+// Connect creates new db connection.
 func Connect(ctx context.Context, conf *config.DB) (*sqlx.DB, error) {
 	logger := logging.FromContext(ctx)
 	logger.WithField("conn_string", conf.ConnString).Trace("connecting to db")
-	var conn, err = sqlx.ConnectContext(ctx, "pgx", conf.ConnString)
+	conn, err := sqlx.ConnectContext(ctx, "pgx", conf.ConnString)
 	if err != nil {
 		logger.WithError(err).Error("unable to connect to database")
+
 		return nil, err
 	}
 	conn.DB.SetMaxOpenConns(conf.MaxOpenConns)
@@ -25,9 +26,10 @@ func Connect(ctx context.Context, conf *config.DB) (*sqlx.DB, error) {
 	return conn, err
 }
 
-// Disconnect drops db connection
+// Disconnect drops db connection.
 func Disconnect(ctx context.Context, dbConn *sqlx.DB) error {
 	logger := logging.FromContext(ctx)
 	logger.Trace("disconnecting db")
+
 	return dbConn.Close()
 }
