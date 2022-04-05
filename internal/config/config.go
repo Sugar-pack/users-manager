@@ -10,10 +10,10 @@ import (
 // DB contains database and migration settings.
 type DB struct {
 	ConnString       string        `mapstructure:"conn_string"`
-	MaxOpenConns     int           `mapstructure:"max_open_conns"`
-	ConnMaxLifetime  time.Duration `mapstructure:"conn_max_lifetime"`
 	MigrationDirPath string        `mapstructure:"migration_dir_path"`
 	MigrationTable   string        `mapstructure:"migration_table"`
+	MaxOpenConns     int           `mapstructure:"max_open_conns"`
+	ConnMaxLifetime  time.Duration `mapstructure:"conn_max_lifetime"`
 }
 
 // API contains api settings.
