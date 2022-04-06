@@ -13,3 +13,9 @@ func PrepareTransaction(ctx context.Context, dbConn sqlx.ExecerContext, txID uui
 	_, err := dbConn.ExecContext(ctx, query)
 	return err
 }
+
+func CommitPrepared(ctx context.Context, dbConn sqlx.ExecerContext, txID string) error {
+	query := fmt.Sprintf(`COMMIT PREPARED '%s'`, txID)
+	_, err := dbConn.ExecContext(ctx, query)
+	return err
+}

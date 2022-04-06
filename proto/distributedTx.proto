@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "pkg/generated/distributedtx";
+
+service DistributedTxService {
+  rpc Commit(TxToCommit) returns(TxResponse);
+}
+
+message TxToCommit {
+  string tx_id = 1;
+}
+
+message TxResponse {}
