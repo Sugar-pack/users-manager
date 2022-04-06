@@ -22,5 +22,6 @@ func (dt *DistributedTxService) Commit(ctx context.Context, req *distributedTxPb
 		logger.WithError(err).Error("commit prepared transaction failed")
 		return nil, status.Error(codes.Internal, "commit prepared transaction failed")
 	}
+	dt.cancelTxIDCh <- txID
 	return &distributedTxPb.TxResponse{}, nil
 }
