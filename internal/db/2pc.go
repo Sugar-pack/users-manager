@@ -7,8 +7,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func PrepareTransaction(ctx context.Context, dbConn sqlx.ExecerContext, txID fmt.Stringer) error {
-	query := fmt.Sprintf(`PREPARE TRANSACTION '%s'`, txID.String())
+func PrepareTransaction(ctx context.Context, dbConn sqlx.ExecerContext, txID string) error {
+	query := fmt.Sprintf(`PREPARE TRANSACTION '%s'`, txID)
 	_, err := dbConn.ExecContext(ctx, query)
 	return err
 }

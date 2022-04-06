@@ -47,7 +47,7 @@ func (us *UsersService) CreateUser(ctx context.Context, newUser *usersPb.NewUser
 		return nil, status.Error(codes.Internal, "create user failed")
 	}
 
-	err = db.PrepareTransaction(ctx, tx, txID) // start prepared transaction (2pc) in regular transaction
+	err = db.PrepareTransaction(ctx, tx, txID.String()) // start prepared transaction (2pc) in regular transaction
 	if err != nil {
 		logger.WithError(err).Error("start prepared tx failed")
 		return nil, status.Error(codes.Internal, "start prepared tx failed")
