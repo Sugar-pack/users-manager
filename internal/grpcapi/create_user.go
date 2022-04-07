@@ -57,6 +57,7 @@ func (us *UsersService) CreateUser(ctx context.Context, newUser *usersPb.NewUser
 		logger.WithError(err).Error("commit tx failed")
 		return nil, status.Error(codes.Internal, "commit tx failed")
 	}
+	us.newTxIDCh <- txID.String()
 	return &usersPb.CreatedUser{
 		Id:   userID.String(),
 		TxId: txID.String(),

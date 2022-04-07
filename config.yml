@@ -1,6 +1,8 @@
 ---
 api:
   bind: :8080
+monitoring:
+  rollback_timeout: 20s
 db:
 #  conn_string: "host=localhost port=15432 user=user_db dbname=users_db sslmode=disable" # use it for the local development
   conn_string: "host=users_db port=5432 user=user_db dbname=users_db sslmode=disable"

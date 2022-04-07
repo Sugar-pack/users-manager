@@ -34,7 +34,9 @@ type Logger interface {
 // GetLogger is a Logger getter with default settings.
 func GetLogger() Logger {
 	logger := log.New()
-	logger.SetFormatter(&log.TextFormatter{})
+	logger.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
 	logger.SetLevel(log.TraceLevel)
 	logger.SetOutput(os.Stdout)
 	logger.AddHook(GetFileLineHook())

@@ -11,15 +11,21 @@ import (
 
 type UsersService struct {
 	usersPb.UnimplementedUsersServer
-	dbConn *sqlx.DB
+	dbConn       *sqlx.DB
+	newTxIDCh    chan string
+	cancelTxIDCh chan string
 }
 
 type DistributedTxService struct {
 	distributedTxPb.UnimplementedDistributedTxServiceServer
-	dbConn *sqlx.DB
+	dbConn       *sqlx.DB
+	newTxIDCh    chan string
+	cancelTxIDCh chan string
 }
 
-func CreateServer(logger logging.Logger, dbConn *sqlx.DB) (*grpc.Server, error) {
+func CreateServer(logger logging.Logger, dbConn *sqlx.DB,
+	newTxIDCh, cancelTxIDCh chan string,
+) (*grpc.Server, error) {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			logging.WithLogger(logger),
@@ -29,10 +35,14 @@ func CreateServer(logger logging.Logger, dbConn *sqlx.DB) (*grpc.Server, error) 
 	)
 
 	usersService := &UsersService{
-		dbConn: dbConn,
+		dbConn:       dbConn,
+		newTxIDCh:    newTxIDCh,
+		cancelTxIDCh: cancelTxIDCh,
 	}
 	distributedTxService := &DistributedTxService{
-		dbConn: dbConn,
+		dbConn:       dbConn,
+		newTxIDCh:    newTxIDCh,
+		cancelTxIDCh: cancelTxIDCh,
 	}
 	usersPb.RegisterUsersServer(grpcServer, usersService)
 	distributedTxPb.RegisterDistributedTxServiceServer(grpcServer, distributedTxService)

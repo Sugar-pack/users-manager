@@ -21,10 +21,15 @@ type API struct {
 	Bind string `mapstructure:"bind"`
 }
 
+type Monitoring struct {
+	RollbackTimeout time.Duration `mapstructure:"rollback_timeout"`
+}
+
 // AppConfig is a container for application config.
 type AppConfig struct {
-	API *API `mapstructure:"api"`
-	Db  *DB  `mapstructure:"db"`
+	API        *API        `mapstructure:"api"`
+	Db         *DB         `mapstructure:"db"`
+	Monitoring *Monitoring `mapstructure:"monitoring"`
 }
 
 // GetAppConfig returns *Config.
