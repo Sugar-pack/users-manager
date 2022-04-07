@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"log"
-	"net"
 
+	"github.com/Sugar-pack/users-manager/internal/app"
 	"github.com/Sugar-pack/users-manager/internal/config"
 	"github.com/Sugar-pack/users-manager/internal/db"
-	"github.com/Sugar-pack/users-manager/internal/grpcapi"
 	"github.com/Sugar-pack/users-manager/internal/migrations"
 	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
@@ -17,7 +16,6 @@ func main() {
 	appConfig, err := config.GetAppConfig()
 	if err != nil {
 		log.Fatal(err)
-
 		return
 	}
 
@@ -27,34 +25,15 @@ func main() {
 
 	if err != nil {
 		log.Fatal(err)
-
 		return
 	}
 
 	dbConn, err := db.Connect(ctx, appConfig.Db)
 	if err != nil {
 		log.Fatal(err)
-
 		return
 	}
 
-	server, err := grpcapi.CreateServer(logger, dbConn)
-	if err != nil {
-		log.Fatal(err)
-
-		return
-	}
-
-	lis, err := net.Listen("tcp", appConfig.API.Bind)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-
-		return
-	}
-
-	if serveErr := server.Serve(lis); serveErr != nil {
-		log.Fatalf("failed to listen: %v", err)
-
-		return
-	}
+	application := app.CreateApp(logger, dbConn, appConfig.Monitoring)
+	application.Start(logger, appConfig.API)
 }
