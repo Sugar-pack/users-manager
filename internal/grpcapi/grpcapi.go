@@ -6,7 +6,6 @@ import (
 
 	distributedTxPb "github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
 	usersPb "github.com/Sugar-pack/users-manager/pkg/generated/users"
-	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 type UsersService struct {
@@ -23,17 +22,9 @@ type DistributedTxService struct {
 	cancelTxIDCh chan string
 }
 
-func CreateServer(logger logging.Logger, dbConn *sqlx.DB,
+func CreateServer(grpcServer *grpc.Server, dbConn *sqlx.DB,
 	newTxIDCh, cancelTxIDCh chan string,
 ) (*grpc.Server, error) {
-	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			logging.WithLogger(logger),
-			logging.WithUniqTraceID,
-			logging.LogBoundaries,
-		),
-	)
-
 	usersService := &UsersService{
 		dbConn:       dbConn,
 		newTxIDCh:    newTxIDCh,
