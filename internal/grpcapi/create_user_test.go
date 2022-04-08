@@ -144,8 +144,16 @@ func TestUsersService_CreateUser(t *testing.T) {
 		break
 	}
 	assert.NotEmpty(t, monitorTXID, "unexpected monitor tx id")
+
+	dbTXID, err := fetchPrepapedTx(ctx, dbConn, monitorTXID)
+	if err != nil {
+		t.Fatalf("select prepared tx failed: '%s'", err)
+	}
+	assert.NotEmpty(t, dbTXID, "unexpected db tx id value")
 }
 
-func fetchPrepapedTx(ctx context.Context, dbConn *sqlx.DB, txID string) {
-	query :=
+func fetchPrepapedTx(ctx context.Context, dbConn *sqlx.DB, txID string) (string, error) {
+	var dbTxId string
+	err := dbConn.QueryRowxContext(ctx, `SELECT gid FROM pg_prepared_xacts WHERE gid = $1`, txID).Scan(&dbTxId)
+	return dbTxId, err
 }
