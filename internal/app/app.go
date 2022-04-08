@@ -26,7 +26,14 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 	newTxIDCh := make(chan string)
 	cancelTxIDCh := make(chan string)
 
-	server, err := grpcapi.CreateServer(logger, dbConn, newTxIDCh, cancelTxIDCh)
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			logging.WithLogger(logger),
+			logging.WithUniqTraceID,
+			logging.LogBoundaries,
+		),
+	)
+	server, err := grpcapi.CreateServer(grpcServer, dbConn, newTxIDCh, cancelTxIDCh)
 	if err != nil {
 		logger.WithError(err).Error("create grpc server failed")
 		return nil
