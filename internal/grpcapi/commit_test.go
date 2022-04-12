@@ -2,6 +2,7 @@ package grpcapi
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -11,8 +12,9 @@ import (
 	"github.com/Sugar-pack/users-manager/internal/config"
 	"github.com/Sugar-pack/users-manager/internal/db"
 	"github.com/Sugar-pack/users-manager/internal/migrations"
-	usersPb "github.com/Sugar-pack/users-manager/pkg/generated/users"
+	"github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
 	"github.com/Sugar-pack/users-manager/pkg/logging"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -23,9 +25,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 )
 
-const buffSize = 1024 * 1024
-
-type CreateUserSuite struct {
+type CommitTxSuite struct {
 	suite.Suite
 	ctx        context.Context
 	dbConn     *sqlx.DB
@@ -33,12 +33,12 @@ type CreateUserSuite struct {
 	pgResource *dockertest.Resource
 }
 
-func TestCreateUserSuite(t *testing.T) {
-	ts := new(CreateUserSuite)
+func TestCommitTxSuite(t *testing.T) {
+	ts := new(CommitTxSuite)
 	suite.Run(t, ts)
 }
 
-func (ts *CreateUserSuite) SetupSuite() {
+func (ts *CommitTxSuite) SetupSuite() {
 	ctx := context.Background()
 	logger := logging.GetLogger()
 	ctx = logging.WithContext(ctx, logger)
@@ -107,7 +107,7 @@ func (ts *CreateUserSuite) SetupSuite() {
 	ts.dbConn = dbConn
 }
 
-func (ts *CreateUserSuite) TearDownSuite() {
+func (ts *CommitTxSuite) TearDownSuite() {
 	ctx := ts.ctx
 	dbConn := ts.dbConn
 	if disconnectErr := db.Disconnect(ctx, dbConn); disconnectErr != nil {
@@ -121,7 +121,7 @@ func (ts *CreateUserSuite) TearDownSuite() {
 	}
 }
 
-func (ts *CreateUserSuite) TestCreateUser_OK() {
+func (ts *CommitTxSuite) TestCommit_OK() {
 	t := ts.T()
 	ctx := ts.ctx
 	logger := logging.FromContext(ctx)
@@ -158,31 +158,59 @@ func (ts *CreateUserSuite) TestCreateUser_OK() {
 	}
 	defer grpcConn.Close()
 
-	usersClient := usersPb.NewUsersClient(grpcConn)
+	testTx, err := dbConn.BeginTxx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now().UTC()
+	userName := "foobar"
+	userID := uuid.New()
+	testUser := &db.User{
+		CreatedAt: now,
+		Name:      userName,
+		ID:        userID,
+	}
+	if err = db.CreateUser(ctx, testTx, testUser); err != nil {
+		t.Fatal(err)
+	}
+	txID := uuid.New()
+	if err = db.PrepareTransaction(ctx, testTx, txID.String()); err != nil {
+		t.Fatal(err)
+	}
 
-	createdUser, err := usersClient.CreateUser(ctx, &usersPb.NewUser{Name: "e2e"})
+	// it really doesn't matter what we do with PREPARED TRANSACTION
+	// neither COMMIT nor ROLLBACK has effect
+	// here, we just release testTx
+	if err = testTx.Rollback(); err != nil {
+		t.Fatal(err)
+	}
+
+	txClient := distributedtx.NewDistributedTxServiceClient(grpcConn)
+	resp, err := txClient.Commit(ctx, &distributedtx.TxToCommit{TxId: txID.String()})
 	assert.NoError(t, err, "unexpected error")
-	assert.NotNil(t, createdUser, "unexpected grpc response") // can not assert certain values, because both of them are UUID.
-	// need to refactor it, and use DI for UUID generation
+	assert.NotNil(t, resp, "unexpected grpc response")
 
-	var monitorTXID string
+	var cancelTxID string
 	select {
-	case monitorTXID = <-newTxIDCh:
+	case cancelTxID = <-cancelTxIDCh:
 	default:
 		break
 	}
-	assert.NotEmpty(t, monitorTXID, "unexpected monitor tx id")
+	assert.NotEmpty(t, cancelTxID, "unexpected cancel tx id")
 
-	dbTXID, err := fetchPreparedTx(t, ctx, dbConn, monitorTXID)
+	_, err = fetchPreparedTx(t, ctx, dbConn, cancelTxID)
+	assert.ErrorIs(t, err, sql.ErrNoRows, "unexpected error, expected NoRows")
+
+	dbUser, err := fetchDBUser(t, dbConn, userID)
 	if err != nil {
-		t.Fatalf("select prepared tx failed: '%s'", err)
+		t.Fatal(err)
 	}
-	assert.NotEmpty(t, dbTXID, "unexpected db tx id value")
+	assert.Equal(t, testUser, dbUser, "db user must match")
 }
 
-func fetchPreparedTx(t *testing.T, ctx context.Context, dbConn *sqlx.DB, txID string) (string, error) {
+func fetchDBUser(t *testing.T, dbConn *sqlx.DB, userID uuid.UUID) (*db.User, error) {
 	t.Helper()
-	var dbTxId string
-	err := dbConn.QueryRowxContext(ctx, `SELECT gid FROM pg_prepared_xacts WHERE gid = $1`, txID).Scan(&dbTxId)
-	return dbTxId, err
+	dbUser := new(db.User)
+	err := dbConn.QueryRowx(`SELECT id, name, created_at FROM users WHERE id = $1`, userID).StructScan(dbUser)
+	return dbUser, err
 }
