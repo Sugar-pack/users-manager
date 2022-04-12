@@ -11,3 +11,6 @@ vet:  ## Run go vet
 
 lint: ## Run go lint
 	golangci-lint run
+
+test:
+	go test -cover -count 1 ./...
