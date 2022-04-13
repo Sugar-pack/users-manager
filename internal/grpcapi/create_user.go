@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -16,6 +18,10 @@ import (
 )
 
 func (us *UsersService) CreateUser(ctx context.Context, newUser *usersPb.NewUser) (*usersPb.CreatedUser, error) {
+	var span trace.Span
+	ctx, span = otel.Tracer("users-manager-grpcapi").Start(ctx, "CreateUser")
+	defer span.End()
+
 	dbConn := us.dbConn
 	logger := logging.FromContext(ctx)
 	userID := uuid.New()

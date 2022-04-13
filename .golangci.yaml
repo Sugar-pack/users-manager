@@ -717,6 +717,9 @@ linters-settings:
       - status.Error(
       - .NamedExecContext(
       - .ExecContext(
+      - jaeger.New(
+      - resource.Merge(
+      - otelsqlx.ConnectContext(
     ignoreSigRegexps:
       - \.New.*Error\(
     ignorePackageGlobs:
