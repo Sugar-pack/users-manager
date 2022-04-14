@@ -4,7 +4,7 @@ docker-run: vet lint
 
 .PHONY: docker-restart
 docker-restart:
-	@docker-compose up -d
+	@docker-compose up -d --remove-orphans
 
 vet:  ## Run go vet
 	go vet ./...

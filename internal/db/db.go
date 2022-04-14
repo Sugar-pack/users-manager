@@ -5,6 +5,9 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 
 	"github.com/Sugar-pack/users-manager/internal/config"
 	"github.com/Sugar-pack/users-manager/pkg/logging"
@@ -14,7 +17,10 @@ import (
 func Connect(ctx context.Context, conf *config.DB) (*sqlx.DB, error) {
 	logger := logging.FromContext(ctx)
 	logger.WithField("conn_string", conf.ConnString).Trace("connecting to db")
-	conn, err := sqlx.ConnectContext(ctx, "pgx", conf.ConnString)
+
+	conn, err := otelsqlx.ConnectContext(ctx, "pgx", conf.ConnString,
+		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),
+	)
 	if err != nil {
 		logger.WithError(err).Error("unable to connect to database")
 

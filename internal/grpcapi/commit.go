@@ -1,8 +1,11 @@
+//nolint:dupl // need to refactor handler
 package grpcapi
 
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -14,6 +17,9 @@ import (
 func (dt *DistributedTxService) Commit(ctx context.Context, req *distributedTxPb.TxToCommit) (
 	*distributedTxPb.TxResponse, error,
 ) {
+	var span trace.Span
+	ctx, span = otel.Tracer(TracerNameUsersManager).Start(ctx, "Commit")
+	defer span.End()
 	logger := logging.FromContext(ctx)
 	dbConn := dt.dbConn
 	txID := req.GetTxId()

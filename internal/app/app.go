@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 
 	"github.com/Sugar-pack/users-manager/internal/config"
@@ -31,6 +33,7 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 			logging.WithLogger(logger),
 			logging.WithUniqTraceID,
 			logging.LogBoundaries,
+			otelgrpc.UnaryServerInterceptor(),
 		),
 	)
 	server, err := grpcapi.CreateServer(grpcServer, dbConn, newTxIDCh, cancelTxIDCh)
@@ -49,6 +52,12 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 
 func (app *App) Start(logger logging.Logger, apiConf *config.API) {
 	startCtx := context.Background()
+
+	err := initJaegerTracing(logger)
+	if err != nil {
+		logger.WithError(err).Error("init jaeger tracing failed")
+		return
+	}
 
 	grpcAddr := apiConf.Bind
 	lis, err := net.Listen("tcp", grpcAddr)
@@ -111,7 +120,9 @@ LOOP:
 			break LOOP
 		case txID := <-mtx.newTxIDCh:
 			timer := time.AfterFunc(timeout, func() {
-				err := db.RollbackPrepared(ctx, mtx.dbConn, txID)
+				rollbackCtx, span := otel.Tracer("monitor_tx").Start(ctx, "timeout rollback")
+				defer span.End()
+				err := db.RollbackPrepared(rollbackCtx, mtx.dbConn, txID)
 				if err != nil {
 					logger.WithError(err).WithField(LogKeyTXID, txID).Error("rollback timeouted prepared tx failed")
 				}
