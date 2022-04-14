@@ -15,6 +15,12 @@ protoc --go_out=. --go-grpc_out=. proto/distributedTx.proto
 docker-compose up --build -d --remove-orphans
 ```
 
+### Tracing
+
+#### UI
+
+After successfull launch tracing UI will be available on address http://localhost:16686/
+
 ### Known problems
 if api-service didn't start, just restart it
 ```bash

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 
 	"github.com/Sugar-pack/users-manager/internal/config"
@@ -119,7 +120,9 @@ LOOP:
 			break LOOP
 		case txID := <-mtx.newTxIDCh:
 			timer := time.AfterFunc(timeout, func() {
-				err := db.RollbackPrepared(ctx, mtx.dbConn, txID)
+				rollbackCtx, span := otel.Tracer("monitor_tx").Start(ctx, "timeout rollback")
+				defer span.End()
+				err := db.RollbackPrepared(rollbackCtx, mtx.dbConn, txID)
 				if err != nil {
 					logger.WithError(err).WithField(LogKeyTXID, txID).Error("rollback timeouted prepared tx failed")
 				}

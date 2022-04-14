@@ -17,9 +17,11 @@ import (
 	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
+const TracerNameUsersManager = "users-manager-grpcapi"
+
 func (us *UsersService) CreateUser(ctx context.Context, newUser *usersPb.NewUser) (*usersPb.CreatedUser, error) {
 	var span trace.Span
-	ctx, span = otel.Tracer("users-manager-grpcapi").Start(ctx, "CreateUser")
+	ctx, span = otel.Tracer(TracerNameUsersManager).Start(ctx, "CreateUser")
 	defer span.End()
 
 	dbConn := us.dbConn
