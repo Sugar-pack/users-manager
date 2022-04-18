@@ -3,6 +3,7 @@ package app
 import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 
@@ -23,16 +24,16 @@ func newResource() (*resource.Resource, error) {
 	return tracingResource, err
 }
 
-func initJaegerTracing(logger logging.Logger) error {
+func initJaegerTracing(logger logging.Logger) (*trace.TracerProvider, error) {
 	jaegerExporter, err := newExporter()
 	if err != nil {
 		logger.WithError(err).Error("create jaeger exporter failed")
-		return err
+		return nil, err
 	}
 	tracingResource, err := newResource()
 	if err != nil {
 		logger.WithError(err).Error("create tracing resource failed")
-		return err
+		return nil, err
 	}
 
 	tracingProvider := trace.NewTracerProvider(
@@ -42,5 +43,6 @@ func initJaegerTracing(logger logging.Logger) error {
 	)
 
 	otel.SetTracerProvider(tracingProvider)
-	return nil
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tracingProvider, nil
 }
