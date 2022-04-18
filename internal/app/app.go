@@ -53,11 +53,16 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 func (app *App) Start(logger logging.Logger, apiConf *config.API) {
 	startCtx := context.Background()
 
-	err := initJaegerTracing(logger)
+	tracingProvider, err := initJaegerTracing(logger)
 	if err != nil {
 		logger.WithError(err).Error("init jaeger tracing failed")
 		return
 	}
+	defer func() {
+		if stopErr := tracingProvider.Shutdown(startCtx); stopErr != nil {
+			logger.WithError(stopErr).Error("shutting down tracer provider failed")
+		}
+	}()
 
 	grpcAddr := apiConf.Bind
 	lis, err := net.Listen("tcp", grpcAddr)
