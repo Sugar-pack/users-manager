@@ -1,4 +1,6 @@
 # users-manager
+[![build](https://github.com/Sugar-pack/users-manager/actions/workflows/build.yml/badge.svg)](https://github.com/Sugar-pack/users-manager/actions/workflows/build.yml)
+[![CodeQL](https://github.com/Sugar-pack/users-manager/actions/workflows/codeql.yml/badge.svg)](https://github.com/Sugar-pack/users-manager/actions/workflows/codeql.yml)[![codecov](https://codecov.io/gh/Sugar-pack/users-manager/branch/main/graph/badge.svg?token=SU9FJCIPE7)](https://codecov.io/gh/Sugar-pack/users-manager)
 
 ## Development
 
