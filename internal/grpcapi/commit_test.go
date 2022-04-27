@@ -9,11 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sugar-pack/users-manager/internal/config"
-	"github.com/Sugar-pack/users-manager/internal/db"
-	"github.com/Sugar-pack/users-manager/internal/migrations"
-	"github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
-	"github.com/Sugar-pack/users-manager/pkg/logging"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
@@ -23,6 +18,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
+
+	"github.com/Sugar-pack/users-manager/internal/config"
+	"github.com/Sugar-pack/users-manager/internal/db"
+	"github.com/Sugar-pack/users-manager/internal/migrations"
+	"github.com/Sugar-pack/users-manager/pkg/generated/distributedtx"
+	"github.com/Sugar-pack/users-manager/pkg/logging"
 )
 
 type CommitTxSuite struct {
@@ -205,7 +206,8 @@ func (ts *CommitTxSuite) TestCommit_OK() {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, testUser, dbUser, "db user must match")
+	assert.Equal(t, userName, dbUser.Name, "unexpected user name")
+	assert.Equal(t, now.Format(time.UnixDate), dbUser.CreatedAt.Format(time.UnixDate), "unexpected user created at")
 }
 
 func fetchDBUser(t *testing.T, dbConn *sqlx.DB, userID uuid.UUID) (*db.User, error) {
