@@ -1,10 +1,14 @@
 .PHONY: docker-run
-docker-run: vet lint
+docker-run: vet lint test
 	@docker-compose up --build -d --remove-orphans
 
-.PHONY: docker-restart
-docker-restart:
-	@docker-compose up -d --remove-orphans
+.PHONY: docker-up
+docker-up:
+	@docker-compose up -d
+
+.PHONY: docker-build
+docker-build:
+	@docker-compose build
 
 vet:  ## Run go vet
 	go vet ./...
@@ -12,5 +16,8 @@ vet:  ## Run go vet
 lint: ## Run go lint
 	golangci-lint run
 
-test:
-	go test -cover -count 1 ./...
+test: ## Run tests
+	go test ./...
+
+test-coverage: ## Run go test with coverage
+	go test ./... -coverprofile=coverage.out `go list ./...`
