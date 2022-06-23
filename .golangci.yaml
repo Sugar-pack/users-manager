@@ -788,6 +788,9 @@ linters:
     - wastedassign
     - unused
     - nlreturn
+    - exhaustivestruct
+    - exhaustruct
+    - nonamedreturns
 #  presets:
 #    - bugs
 #    - unused
