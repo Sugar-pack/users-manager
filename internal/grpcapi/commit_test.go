@@ -46,7 +46,10 @@ func (ts *CommitTxSuite) SetupSuite() {
 
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		ts.T().Skipf("docker not available: %v", err)
+	}
+	if err = pool.Client.Ping(); err != nil {
+		ts.T().Skipf("docker not available: %v", err)
 	}
 
 	dbUser := "user_db"
@@ -150,10 +153,13 @@ func (ts *CommitTxSuite) TestCommit_OK() {
 		}
 	}()
 
-	grpcConn, err := grpc.NewClient("",
+	grpcConn, err := grpc.NewClient("passthrough:///bufnet",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(dialer),
 	)
+	if err == nil {
+		grpcConn.Connect()
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
