@@ -149,14 +149,16 @@ func (ts *RollbackTxSuite) TestRollback_OK() {
 		}
 	}()
 
-	grpcConn, err := grpc.DialContext(ctx, "",
+	grpcConn, err := grpc.NewClient("",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(dialer),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer grpcConn.Close()
+	t.Cleanup(func() {
+		assert.NoError(t, grpcConn.Close())
+	})
 
 	testTx, err := dbConn.BeginTxx(ctx, nil)
 	if err != nil {

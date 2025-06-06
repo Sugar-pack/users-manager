@@ -20,9 +20,12 @@ func newMock() (*sqlx.DB, sqlmock.Sqlmock, error) {
 func TestPrepareTransaction_OK(t *testing.T) {
 	dbConn, mock, err := newMock()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	mock.ExpectExec("PREPARE TRANSACTION").WillReturnResult(sqlmock.NewResult(0, 1))
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	mock.ExpectExec(`^PREPARE TRANSACTION`).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err = PrepareTransaction(context.Background(), dbConn, "txid")
 	assert.NoError(t, err)
@@ -32,9 +35,12 @@ func TestPrepareTransaction_OK(t *testing.T) {
 func TestPrepareTransaction_Error(t *testing.T) {
 	dbConn, mock, err := newMock()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	mock.ExpectExec("PREPARE TRANSACTION").WillReturnError(assert.AnError)
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	mock.ExpectExec(`^PREPARE TRANSACTION`).WillReturnError(assert.AnError)
 
 	err = PrepareTransaction(context.Background(), dbConn, "txid")
 	assert.Error(t, err)
@@ -43,9 +49,12 @@ func TestPrepareTransaction_Error(t *testing.T) {
 func TestCommitPrepared_Error(t *testing.T) {
 	dbConn, mock, err := newMock()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	mock.ExpectExec("COMMIT PREPARED").WillReturnError(assert.AnError)
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	mock.ExpectExec(`^COMMIT PREPARED`).WillReturnError(assert.AnError)
 
 	err = CommitPrepared(context.Background(), dbConn, "txid")
 	assert.Error(t, err)
@@ -54,9 +63,12 @@ func TestCommitPrepared_Error(t *testing.T) {
 func TestRollbackPrepared_OK(t *testing.T) {
 	dbConn, mock, err := newMock()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	mock.ExpectExec("ROLLBACK PREPARED").WillReturnResult(sqlmock.NewResult(0, 1))
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	mock.ExpectExec(`^ROLLBACK PREPARED`).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err = RollbackPrepared(context.Background(), dbConn, "txid")
 	assert.NoError(t, err)

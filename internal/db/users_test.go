@@ -22,10 +22,20 @@ func newMockDB() (*sqlx.DB, sqlmock.Sqlmock, error) {
 func TestCreateUser_OK(t *testing.T) {
 	dbConn, mock, err := newMockDB()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	user := &User{ID: uuid.New(), Name: "tester", CreatedAt: time.Now()}
-	mock.ExpectExec("INSERT INTO users").WithArgs(user.ID, user.Name, user.CreatedAt).WillReturnResult(sqlmock.NewResult(1, 1))
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	user := &User{
+		ID:        uuid.New(),
+		Name:      "tester",
+		CreatedAt: time.Now(),
+	}
+
+	mock.ExpectExec(`^INSERT INTO users`).
+		WithArgs(user.ID, user.Name, user.CreatedAt).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err = CreateUser(context.Background(), dbConn, user)
 	assert.NoError(t, err)
@@ -35,10 +45,20 @@ func TestCreateUser_OK(t *testing.T) {
 func TestCreateUser_Error(t *testing.T) {
 	dbConn, mock, err := newMockDB()
 	assert.NoError(t, err)
-	defer dbConn.Close()
 
-	user := &User{ID: uuid.New(), Name: "tester", CreatedAt: time.Now()}
-	mock.ExpectExec("INSERT INTO users").WithArgs(user.ID, user.Name, user.CreatedAt).WillReturnError(assert.AnError)
+	t.Cleanup(func() {
+		assert.NoError(t, dbConn.Close())
+	})
+
+	user := &User{
+		ID:        uuid.New(),
+		Name:      "tester",
+		CreatedAt: time.Now(),
+	}
+
+	mock.ExpectExec(`^INSERT INTO users`).
+		WithArgs(user.ID, user.Name, user.CreatedAt).
+		WillReturnError(assert.AnError)
 
 	err = CreateUser(context.Background(), dbConn, user)
 	assert.Error(t, err)
