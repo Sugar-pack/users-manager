@@ -26,8 +26,8 @@ func Connect(ctx context.Context, conf *config.DB) (*sqlx.DB, error) {
 
 		return nil, err
 	}
-	conn.DB.SetMaxOpenConns(conf.MaxOpenConns)
-	conn.DB.SetConnMaxLifetime(conf.ConnMaxLifetime)
+	conn.SetMaxOpenConns(conf.MaxOpenConns)
+	conn.SetConnMaxLifetime(conf.ConnMaxLifetime)
 
 	return conn, err
 }

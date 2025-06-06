@@ -45,7 +45,10 @@ func (ts *CreateUserSuite) SetupSuite() {
 
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+		ts.T().Skipf("docker not available: %v", err)
+	}
+	if err = pool.Client.Ping(); err != nil {
+		ts.T().Skipf("docker not available: %v", err)
 	}
 
 	dbUser := "user_db"
@@ -54,7 +57,7 @@ func (ts *CreateUserSuite) SetupSuite() {
 	// pulls an image, creates a container based on it and runs it
 	pgResource, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "postgres",
-		Tag:        "14.2",
+		Tag:        "15.13",
 		Env: []string{
 			fmt.Sprintf("POSTGRES_USER=%s", dbUser),
 			fmt.Sprintf("POSTGRES_DB=%s", dbName),
@@ -149,14 +152,19 @@ func (ts *CreateUserSuite) TestCreateUser_OK() {
 		}
 	}()
 
-	grpcConn, err := grpc.DialContext(ctx, "",
+	grpcConn, err := grpc.NewClient("passthrough:///bufnet",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithContextDialer(dialer),
 	)
+	if err == nil {
+		grpcConn.Connect()
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer grpcConn.Close()
+	t.Cleanup(func() {
+		assert.NoError(t, grpcConn.Close())
+	})
 
 	usersClient := usersPb.NewUsersClient(grpcConn)
 
