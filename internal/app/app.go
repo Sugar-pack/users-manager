@@ -33,8 +33,8 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 			logging.WithLogger(logger),
 			logging.WithUniqTraceID,
 			logging.LogBoundaries,
-			otelgrpc.UnaryServerInterceptor(),
 		),
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
 	server, err := grpcapi.CreateServer(grpcServer, dbConn, newTxIDCh, cancelTxIDCh)
 	if err != nil {
@@ -53,9 +53,9 @@ func CreateApp(logger logging.Logger, dbConn *sqlx.DB, monitoringConf *config.Mo
 func (app *App) Start(logger logging.Logger, apiConf *config.API) {
 	startCtx := context.Background()
 
-	tracingProvider, err := initJaegerTracing(logger)
+	tracingProvider, err := InitTracing(startCtx, logger)
 	if err != nil {
-		logger.WithError(err).Error("init jaeger tracing failed")
+		logger.WithError(err).Error("init tracing failed")
 		return
 	}
 	defer func() {
